@@ -1,0 +1,8 @@
+{
+  "platform": "node",
+  "app": "bama-app",
+  "port": 3000,
+  "node": {
+    "version": "20"
+  }
+}
