@@ -21,8 +21,35 @@ export function route<C = unknown>(handler: Handler<C>): Handler<C> {
     try {
       if (MUTATING.has(req.method)) {
         const origin = req.headers.get('origin');
-        if (origin && origin !== req.nextUrl.origin) {
-          throw new AppError(403, 'BAD_ORIGIN', 'درخواست نامعتبر است.');
+        if (origin) {
+          const configuredOrigins = [
+            process.env.NEXT_PUBLIC_APP_URL,
+            process.env.VERCEL_URL,
+            process.env.V0_RUNTIME_URL,
+            process.env.V0_DEV_APP_URL,
+            process.env.V0_BUILD_URL,
+            process.env.V0_SANDBOX_URL,
+          ]
+            .filter((value): value is string => Boolean(value))
+            .flatMap((value) => {
+              try {
+                return [new URL(value.includes('://') ? value : `https://${value}`).origin];
+              } catch {
+                return [];
+              }
+            });
+          const allowedOrigins = new Set([req.nextUrl.origin, ...configuredOrigins]);
+          let originAllowed = allowedOrigins.has(origin);
+          if (!originAllowed && process.env.NODE_ENV !== 'production') {
+            try {
+              originAllowed = new URL(origin).hostname === 'localhost';
+            } catch {
+              originAllowed = false;
+            }
+          }
+          if (!originAllowed) {
+            throw new AppError(403, 'BAD_ORIGIN', 'درخواست نامعتبر است.');
+          }
         }
       }
       return await handler(req, ctx);
