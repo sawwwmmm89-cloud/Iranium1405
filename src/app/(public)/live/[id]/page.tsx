@@ -16,12 +16,17 @@ type Props = { params: Promise<{ id: string }> };
 
 async function load(id: string) {
   if (!z.string().uuid().safeParse(id).success) notFound();
-  const live = await prisma.liveClass.findFirst({
-    where: { id, deletedAt: null },
-    include: { instructor: { select: { name: true } } },
-  });
-  if (!live) notFound();
-  return live;
+  try {
+    const live = await prisma.liveClass.findFirst({
+      where: { id, deletedAt: null },
+      include: { instructor: { select: { name: true } } },
+    });
+    if (!live) notFound();
+    return live;
+  } catch (error) {
+    console.error('[bama] live detail unavailable:', error);
+    notFound();
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

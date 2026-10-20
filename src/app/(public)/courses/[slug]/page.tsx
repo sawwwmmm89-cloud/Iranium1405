@@ -20,7 +20,8 @@ async function load(slug: string) {
     return await getCourse(slug);
   } catch (e) {
     if (e instanceof AppError && e.status === 404) notFound();
-    throw e;
+    console.error('[bama] course detail unavailable:', e);
+    notFound();
   }
 }
 
