@@ -2,8 +2,18 @@ import type { Metadata } from 'next';
 import '@fontsource-variable/vazirmatn';
 import './globals.css';
 
+const configuredAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+const metadataBase = (() => {
+  if (!configuredAppUrl) return new URL('http://localhost:3000');
+  try {
+    return new URL(configuredAppUrl.includes('://') ? configuredAppUrl : `https://${configuredAppUrl}`);
+  } catch {
+    return new URL('http://localhost:3000');
+  }
+})();
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
+  metadataBase,
   title: { default: 'باما | همه چی باما!', template: '%s | باما' },
   description: 'یک تجربه مدرن برای یادگیری، آموزش و رشد.',
 };
