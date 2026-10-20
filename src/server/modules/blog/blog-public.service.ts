@@ -8,14 +8,19 @@ const live = () => ({ status: 'PUBLISHED' as const, deletedAt: null, publishedAt
 
 export async function listPublishedPosts(page: number, pageSize: number) {
   const where = live();
-  const [items, total] = await Promise.all([
-    prisma.blogPost.findMany({
-      where, orderBy: { publishedAt: 'desc' }, skip: (page - 1) * pageSize, take: pageSize,
-      select: { id: true, slug: true, title: true, excerpt: true, coverImageUrl: true, categoryName: true, publishedAt: true, author: { select: { name: true } } },
-    }),
-    prisma.blogPost.count({ where }),
-  ]);
-  return { items, total };
+  try {
+    const [items, total] = await Promise.all([
+      prisma.blogPost.findMany({
+        where, orderBy: { publishedAt: 'desc' }, skip: (page - 1) * pageSize, take: pageSize,
+        select: { id: true, slug: true, title: true, excerpt: true, coverImageUrl: true, categoryName: true, publishedAt: true, author: { select: { name: true } } },
+      }),
+      prisma.blogPost.count({ where }),
+    ]);
+    return { items, total };
+  } catch (error) {
+    console.error('[bama] blog unavailable:', error);
+    return { items: [], total: 0 };
+  }
 }
 
 /** Drafts/unpublished/deleted posts are indistinguishable from non-existent ones for the public. */

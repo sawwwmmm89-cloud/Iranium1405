@@ -9,12 +9,21 @@ import { prisma } from '@/server/db/prisma';
 export const metadata: Metadata = { title: 'کلاس‌های آنلاین' };
 export const dynamic = 'force-dynamic';
 
+async function loadLiveClasses() {
+  try {
+    return await prisma.liveClass.findMany({
+      where: { deletedAt: null, status: { in: ['SCHEDULED', 'LIVE'] } },
+      orderBy: { startsAt: 'asc' },
+      select: { id: true, title: true, description: true, startsAt: true, status: true, price: true, instructor: { select: { name: true } } },
+    });
+  } catch (error) {
+    console.error('[bama] live classes unavailable:', error);
+    return [];
+  }
+}
+
 export default async function LivePage() {
-  const lives = await prisma.liveClass.findMany({
-    where: { deletedAt: null, status: { in: ['SCHEDULED', 'LIVE'] } },
-    orderBy: { startsAt: 'asc' },
-    select: { id: true, title: true, description: true, startsAt: true, status: true, price: true, instructor: { select: { name: true } } },
-  });
+  const lives = await loadLiveClasses();
   return (
     <div className="container space-y-6 py-12">
       <h1 className="text-3xl font-bold">کلاس‌های آنلاین</h1>

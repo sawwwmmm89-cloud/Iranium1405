@@ -18,28 +18,33 @@ export async function listCourses(query: z.infer<typeof listQuerySchema>) {
     ...(query.q ? { title: { contains: query.q, mode: 'insensitive' as const } } : {}),
     ...(query.category ? { category: { slug: query.category } } : {}),
   };
-  const [items, total] = await Promise.all([
-    prisma.course.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      skip: (query.page - 1) * query.pageSize,
-      take: query.pageSize,
-      select: {
-        id: true,
-        slug: true,
-        title: true,
-        shortDesc: true,
-        thumbnail: true,
-        price: true,
-        discountPrice: true,
-        level: true,
-        durationMin: true,
-        instructor: { select: { name: true } },
-      },
-    }),
-    prisma.course.count({ where }),
-  ]);
-  return { items, total };
+  try {
+    const [items, total] = await Promise.all([
+      prisma.course.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (query.page - 1) * query.pageSize,
+        take: query.pageSize,
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          shortDesc: true,
+          thumbnail: true,
+          price: true,
+          discountPrice: true,
+          level: true,
+          durationMin: true,
+          instructor: { select: { name: true } },
+        },
+      }),
+      prisma.course.count({ where }),
+    ]);
+    return { items, total };
+  } catch (error) {
+    console.error('[bama] courses unavailable:', error);
+    return { items: [], total: 0 };
+  }
 }
 
 export async function getCourse(idOrSlug: string) {
