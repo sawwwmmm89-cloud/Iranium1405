@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 const schema = z.object({
   DATABASE_URL: z.string().min(1),
-  AUTH_SECRET: z.string().min(32),
+  AUTH_SECRET: z.string().min(16),
   NEXT_PUBLIC_APP_URL: z.preprocess((value) => {
     if (typeof value !== 'string' || !value.trim()) return 'http://localhost:3000';
     const candidate = value.trim();
